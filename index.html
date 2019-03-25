@@ -139,8 +139,9 @@ console.log(data)
               mousemove.call(this);
             });
             svg.append("text")
-      .attr("transform",
-            "translate(" + (width/2) + " ," + ")")
+            .attr("transform",
+                  "translate(" + (width/2) + " ," +
+                                 (height - 5) + ")")
       .style("text-anchor", "middle")
       .text(x_picked);
 
