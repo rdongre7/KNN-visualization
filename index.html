@@ -25,7 +25,8 @@
     </style>
   </head>
   <body>
-    <div class="k">
+    <div><h1><style="text-align: center;"> A K-Nearest-Neighbors Visualization </h1> </style><div>
+    <div class="k"><br/><br/><br/>
      <span>K = 5</span><input type="range" name="k" value="5" min="1" max="10"></div><br/><br/>
        <div class = "dat">
      <form><select id = "xyeet">
@@ -120,7 +121,7 @@ console.log(data)
            var svg = d3.select("body").append("svg")
             .attr("width", width)
             .attr("height", height)
-            .attr("style", "outline: thin solid red;"); //This will do the job
+            .attr("style", "outline: thick solid black;"); //This will do the job
 
            // add invisible rectangle that will pick up mouse movement
            svg.append("rect")
@@ -137,6 +138,19 @@ console.log(data)
               findNearest.k(k);
               mousemove.call(this);
             });
+            svg.append("text")
+      .attr("transform",
+            "translate(" + (width/2) + " ," + ")")
+      .style("text-anchor", "middle")
+      .text(x_picked);
+
+      svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text(y_picked);
             var findNearest = d3.kNearestNeighbors()
         .extent([[-1, -1], [width + 1, height + 1]])
         .x(function(d) { return d.x; })
