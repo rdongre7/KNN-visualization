@@ -1,0 +1,215 @@
+<html>
+  <head>
+    <style>
+      body {
+        font-family: monospace;
+      }
+
+      .k {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+      }
+
+      .k span {
+        position: relative;
+        bottom: 7px;
+        padding: 0 10px;
+      }
+
+      .hull {
+        fill-opacity: 0.25;
+        stroke: tomato;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="k">
+     <span>K = 5</span><input type="range" name="k" value="5" min="1" max="10"></div><br/><br/>
+       <div class = "dat">
+     <form><select id = "xyeet">
+  <option value="sepal_length">Sepal Length</option>
+  <option value="sepal_width">Sepal Width</option>
+  <option value="petal_length">Petal Length</option>
+  <option value="petal_width">Petal Width</option>
+</select>
+<select id = "yyeet">
+  <option value="sepal_length">Sepal Length</option>
+  <option value="sepal_width">Sepal Width</option>
+  <option value="petal_length">Petal Length</option>
+  <option value="petal_width">Petal Width</option>
+</select>
+<input type="button" value="Submit" onclick = "go_fr()">
+</form></div>
+
+
+     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+     <script src="k-nearest-neighbors.js"></script>
+     <script>
+     function go_fr () {
+     var x_yeet = document.getElementById("xyeet").value;
+     var y_yeet = document.getElementById("yyeet").value;
+     go(x_yeet, y_yeet);
+
+
+       // add invisible rectangle that will pick up mouse movement
+
+
+function go(x_picked, y_picked){
+        d3.csv("iris.csv", function(row) {
+          return {
+            sepal_length: Number(row["sepal_length"]),
+            sepal_width: Number(row["sepal_width"]),
+            petal_length: Number(row["petal_length"]),
+            petal_width: Number(row["petal_width"]),
+            species: row["species"]
+          }
+}, function(error, datu) {
+  d3.selectAll("svg").remove();
+  var sepal_lengths = [];
+  var sepal_widths = [];
+  var petal_lengths = [];
+  var petal_widths = [];
+  var species = [];
+  var index = 0;
+  datu.forEach(function (d) {
+    sepal_lengths[index] = d.sepal_length;
+    sepal_widths[index] = d.sepal_width;
+    petal_lengths[index] = d.petal_length;
+    petal_widths[index] = d.petal_width;
+    species[index] = d.species;
+    index++;
+  });
+  function getX(d){
+    console.log(d)
+    console.log(x_picked)
+    if (x_picked == "sepal_length") return sepal_lengths[d];
+    else if (x_picked == "sepal_width") return sepal_widths[d];
+    else if (x_picked == "petal_length") return petal_lengths[d];
+    else return petal_widths[d];
+  }
+  function getY(d){
+    if (y_picked == "sepal_length") return sepal_lengths[d];
+    else if (y_picked == "sepal_width") return sepal_widths[d];
+    else if (y_picked == "petal_length") return petal_lengths[d];
+    else return petal_widths[d];
+  }
+  var data = d3.range(index)
+    .map(function(d) {
+      return {
+          x: getX(d)*50 ,
+         y: getY(d)*50,
+         species: species[d]
+        };
+  });
+console.log(data)
+
+
+    var width = 500,
+               height = 800,
+               k = 5;
+
+           var kDiv = d3.select(".k")
+            .on("change", function() {
+              k = +kDiv.select("input").node().value;
+              d3.select(this).select("span").text("K = " + k);
+              findNearest.k(k);
+            });
+
+           var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+           // add invisible rectangle that will pick up mouse movement
+           svg.append("rect")
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill-opacity", 0)
+            .on("mousemove", mousemove)
+            .on("wheel", function() {
+              var wheelUp = event.deltaY < 0;
+              wheelUp ? k++ : k--;
+              k = clamp(k, 1, 10); // limit k to be between 1 and 100
+              kDiv.select("input").node().value = k;
+              kDiv.select("span").text("K = " + k);
+              findNearest.k(k);
+              mousemove.call(this);
+            });
+            var findNearest = d3.kNearestNeighbors()
+        .extent([[-1, -1], [width + 1, height + 1]])
+        .x(function(d) { return d.x; })
+        .y(function(d) { return d.y; })
+        .k(k)
+        .data(data);
+      var hull = svg.append("path").attr("class", "hull");
+
+var circles = svg.append("g").attr("class", "circles")
+    .selectAll("circle").data(data)
+  .enter().append("circle")
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r", 2)
+    .style("opacity", 0.5);
+    function getColor(nearest) {
+      var s = 0;
+      var vers = 0;
+      var virg = 0;
+      //console.log(nearest)
+      nearest.forEach(function (d) {
+        if (d.species == "setosa") {s++;}
+        else if (d.species == "versicolor") {vers++;}
+        else {virg++;}
+      })
+      //console.log(s)
+      if (s > virg && s > vers){return "red";}
+      else if (vers > s && vers > virg){return "blue";}
+      else {return "green";}
+    };
+function mousemove() {
+  preventDefault(event);
+
+  var nearest = findNearest(d3.mouse(this));
+  hull.datum(d3.geom.hull(nearest))
+    .attr("d", function(d) {
+      return d.length > 1 ? "M" + d.join("L") + "Z" : null;
+    })
+
+  // Draw convex hull around k-nearest points (if k > 1)
+
+
+
+  // Get corresponding "nearest" data points from original data array
+  nearest = nearest
+    .map(function(d) { return data[d.i]; });
+
+  // Color nearest points red
+  var color = getColor(nearest);
+  circles
+    .style("fill", function(d) {
+      var idx = nearest.indexOf(d);
+      return idx !== -1 ? color : null;
+    });
+
+  hull.style("fill", color).style("stroke", color)
+
+    //svg.selectAll("path").attr("fill", "red");
+
+};
+
+function clamp(d, min, max) {
+  return d < min ? min : d > max ? max : d;
+};
+
+function preventDefault(e) {
+  e = e || window.event;
+  if (e.preventDefault) e.preventDefault();
+  e.returnValue = false;}
+});}}
+
+
+
+
+     </script>
+  </body>
+</html>
