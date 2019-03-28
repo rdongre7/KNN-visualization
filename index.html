@@ -241,10 +241,10 @@ input {
                 svg.append("text")
                 .attr("id", "yokel")
                 .attr("transform",
-                  "translate(" + (width - 10) + " ," +
-                  (height - 5) + ")")
-                .style("text-anchor", "middle")
-                .text(d3.mouse(this));
+                  "translate(" + (width - 20) + " ," +
+                  (height - 10) + ")")
+                .style("text-anchor", "end")
+                .text("("+d3.round((d3.mouse(this)[0])/100,2)+","+d3.round((d3.mouse(this)[1])/100,2)+")");
                 var nearest = findNearest(d3.mouse(this));
                 hull.datum(d3.geom.hull(nearest))
                   .attr("d", function (d) {
